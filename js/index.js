@@ -43,7 +43,7 @@ function initGalleryLazyLoad() {
         }
       });
     },
-    { rootMargin: "200px" },
+    { rootMargin: "50px" },
   );
 
   imgs.forEach((img) => observer.observe(img));
