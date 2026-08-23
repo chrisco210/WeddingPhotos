@@ -97,12 +97,11 @@ function getThumbnailUriList(start, end) {
 }
 
 function getPhotoNameList(start, end) {
-  return [
-    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-1.jpg",
-    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-2.jpg",
-    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-3.jpg",
-    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-4.jpg",
-  ].slice(start, end);
+  const photos = [];
+  for (let i = 1; i <= 168; i++) {
+    photos.push(`Elena-and-Chris-Wedding-Kelsey-Travis-Photography-${i}.jpg`);
+  }
+  return photos.slice(start, end);
 }
 
 function getFullSizeKey(photoName) {
