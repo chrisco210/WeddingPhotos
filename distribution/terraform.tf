@@ -13,7 +13,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      project = "wedding-rsvp"
+      project = "wedding-photos"
     }
   }
 }

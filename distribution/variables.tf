@@ -9,3 +9,9 @@ variable "environment" {
   type        = string
   default     = "production"
 }
+
+variable "distribution_name" {
+  description = "CloudFront Distribution Name"
+  type = string
+  default = "PhotoDistribution"
+}
