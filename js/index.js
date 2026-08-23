@@ -1,9 +1,30 @@
 window.addEventListener("DOMContentLoaded", async function () {
   console.log("DOMContentLoaded");
-  updateCountdown();
-  setInterval(updateCountdown, 1000 * 60 * 60);
+  initGalleryImages();
   initGalleryLazyLoad();
 });
+
+/*
+<img
+  data-src="img/gal/Elena-and-Chris-Engagement-Kelsey-Travis-Photography-91.jpg"
+  alt="Wedding photo"
+  class="gallery-img lazy"
+  />
+*/
+const GALLERY_DIV_ID = "photo-gallery-container";
+
+function initGalleryImages() {
+  const images = getThumbnailUriList(0, undefined);
+
+  images.forEach((uri) => {
+    const img = document.createElement("img");
+    img.dataset.src = uri;
+    img.alt = "Wedding photo";
+    img.classList.add("gallery-img", "lazy");
+
+    document.getElementById(GALLERY_DIV_ID).appendChild(img);
+  });
+}
 
 function initGalleryLazyLoad() {
   const imgs = document.querySelectorAll("img.lazy[data-src]");
@@ -41,10 +62,23 @@ function initLightbox() {
 
   document.querySelectorAll(".gallery-img").forEach((galleryImg) => {
     galleryImg.style.cursor = "pointer";
-    galleryImg.addEventListener("click", () => {
+    galleryImg.addEventListener("mouseenter", () => {
+      console.log("Hovered on image " + galleryImg.src);
       img.src = galleryImg.src || galleryImg.dataset.src;
+    });
+    galleryImg.addEventListener("click", () => {
+      console.log("Clicked on image " + galleryImg.src);
+      const originalImgSource = galleryImg.src || galleryImg.dataset.src;
+      const imageName = originalImgSource.substring(
+        originalImgSource.lastIndexOf("/") + 1,
+      );
+      img.src = getPhotoUri(getFullSizeKey(imageName));
       overlay.classList.add("active");
     });
+  });
+
+  img.addEventListener("load", () => {
+    console.log("Finished loading image " + img.src);
   });
 
   overlay.addEventListener("click", () => overlay.classList.remove("active"));
@@ -54,25 +88,31 @@ function initLightbox() {
   });
 }
 
-const SAVED_KEK_KEY = "saved_kek_result";
-const SAVED_IV_KEY = "saved_kek_iv";
+// Photo Providers
 
-const weddingDate = new Date("2026-08-15T00:00:00");
+const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
 
-function updateCountdown() {
-  const countdownEl = document.getElementById("countdown");
-  if (!countdownEl) return;
-  console.log("Updating countdown...");
-  const now = new Date();
-  const diff = weddingDate - now;
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  if (days > 1) {
-    countdownEl.textContent = `${days} Days to Go!`;
-  } else if (days === 1) {
-    countdownEl.textContent = "1 Day to Go!";
-  } else if (days === 0) {
-    countdownEl.textContent = "Today is the day!";
-  } else {
-    countdownEl.textContent = "The wedding has passed!";
-  }
+function getThumbnailUriList(start, end) {
+  return getPhotoNameList(start, end).map(getThumbSizeKey).map(getPhotoUri);
+}
+
+function getPhotoNameList(start, end) {
+  return [
+    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-1.jpg",
+    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-2.jpg",
+    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-3.jpg",
+    "Elena-and-Chris-Wedding-Kelsey-Travis-Photography-4.jpg",
+  ].slice(start, end);
+}
+
+function getFullSizeKey(photoName) {
+  return `content/full/${photoName}`;
+}
+
+function getThumbSizeKey(photoName) {
+  return `content/thumb/${photoName}`;
+}
+
+function getPhotoUri(photoKey) {
+  return BASE_URI + photoKey;
 }
