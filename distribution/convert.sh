@@ -28,13 +28,13 @@ extensions=(jpg jpeg png gif bmp tif tiff webp)
 
 count=0
 for ext in "${extensions[@]}"; do
-    for file in "$SRC_DIR"/*."$ext"; do
+    for file in "$SRC_DIR"/**/*."$ext"; do
         [ -e "$file" ] || continue
-        filename="$(basename "$file")"
-        dest_file="$DEST_DIR/$filename"
+        filename="${file#$SRC_DIR}"
+        dest_file="$DEST_DIR$filename"
 
         echo "Resizing: $filename -> ${WIDTH}px wide"
-        "$CONVERT_CMD" "$file" -resize "${WIDTH}x" "$dest_file"
+        "$CONVERT_CMD" "$file" -resize "${WIDTH}x" -strip -quality 85 "$dest_file"
 
         count=$((count + 1))
     done
