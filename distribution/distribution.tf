@@ -53,6 +53,10 @@ locals {
   s3_origin_id = "photoS3Origin"
 }
 
+data "aws_cloudfront_response_headers_policy" "simple_cors" {
+  name = "Managed-SimpleCORS"
+}
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name              = aws_s3_bucket.photo_source.bucket_regional_domain_name
@@ -80,6 +84,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
   }
 
   # All content being served by the cloudfront distribution is immutable
@@ -91,7 +96,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
     forwarded_values {
       query_string = false
-      headers      = ["Origin"]
+      headers      = []
 
       cookies {
         forward = "none"
@@ -103,6 +108,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 31536000
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
   }
 
   price_class = "PriceClass_100"

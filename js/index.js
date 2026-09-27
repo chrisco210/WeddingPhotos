@@ -92,7 +92,7 @@ function initLightbox() {
 
 const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
 
-const MANIFEST_KEY = "content/manifest.json";
+const MANIFEST_KEY = "content/manifest.json?foo";
 
 async function getThumbnailUriList(start, end) {
   const photoNameList = await getPhotoNameList(start, end);
