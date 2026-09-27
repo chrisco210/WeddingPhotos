@@ -13,8 +13,8 @@ window.addEventListener("DOMContentLoaded", async function () {
 */
 const GALLERY_DIV_ID = "photo-gallery-container";
 
-function initGalleryImages() {
-  const images = getThumbnailUriList(0, undefined);
+async function initGalleryImages() {
+  const images = await getThumbnailUriList(0, undefined);
 
   images.forEach((uri) => {
     const img = document.createElement("img");
@@ -92,24 +92,44 @@ function initLightbox() {
 
 const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
 
-function getThumbnailUriList(start, end) {
-  return getPhotoNameList(start, end).map(getThumbSizeKey).map(getPhotoUri);
+const MANIFEST_KEY = "content/manifest.json";
+
+async function getThumbnailUriList(start, end) {
+  const photoNameList = await getPhotoNameList(start, end);
+
+  const res = Object.keys(photoNameList)
+    .flatMap((category) =>
+      photoNameList[category].map((imageName) =>
+        getThumbSizeKey(category, imageName),
+      ),
+    )
+    .map(getPhotoUri);
+
+  console.log(res);
+
+  return res;
 }
 
-function getPhotoNameList(start, end) {
-  const photos = [];
-  for (let i = 1; i <= 168; i++) {
-    photos.push(`Elena-and-Chris-Wedding-Kelsey-Travis-Photography-${i}.jpg`);
+async function getPhotoNameList(start, end) {
+  const manifestResponse = await fetch(BASE_URI + MANIFEST_KEY);
+
+  if (!manifestResponse.ok) {
+    throw new Error("Failed to retrieve photo manifest");
   }
-  return photos.slice(start, end);
+
+  const manifestData = await manifestResponse.json();
+
+  console.log(manifestData);
+
+  return manifestData;
 }
 
-function getFullSizeKey(photoName) {
-  return `content/full/${photoName}`;
+function getFullSizeKey(category, photoName) {
+  return `content/full/${category}/${photoName}`;
 }
 
-function getThumbSizeKey(photoName) {
-  return `content/thumb/${photoName}`;
+function getThumbSizeKey(category, photoName) {
+  return `content/thumb/${category}/${photoName}`;
 }
 
 function getPhotoUri(photoKey) {
