@@ -15,14 +15,15 @@ const GALLERY_DIV_ID = "photo-gallery-container";
 
 async function initGalleryImages() {
   console.log("Initializing image gallery");
-  const images = await getThumbnailUriList(0, undefined);
+  const images = await getThumbnailDataList(0, undefined);
 
   console.log("Retrieved image list");
-  images.forEach((uri) => {
+  images.forEach(({ uri, aspect_ratio }) => {
     const img = document.createElement("img");
     img.dataset.src = uri;
     img.alt = "Wedding photo";
     img.classList.add("gallery-img", "lazy");
+    img.style.aspectRatio = aspect_ratio;
 
     document.getElementById(GALLERY_DIV_ID).appendChild(img);
   });
@@ -91,20 +92,21 @@ function initLightbox() {
 // Photo Providers
 
 const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
-const MANIFEST_URI = BASE_URI;
+const MANIFEST_URI = "http://localhost:8080/"; //BASE_URI;
 
-const MANIFEST_KEY = "content/manifest.json";
+const MANIFEST_KEY = "distribution/manifest.json";
 
-async function getThumbnailUriList(start, end) {
+async function getThumbnailDataList(start, end) {
   const photoNameList = await getPhotoNameList(start, end);
 
-  const res = Object.keys(photoNameList)
-    .flatMap((category) =>
-      photoNameList[category].map((imageName) =>
-        getThumbSizeKey(category, imageName),
-      ),
-    )
-    .map(getPhotoUri);
+  const res = Object.keys(photoNameList).flatMap((category) =>
+    photoNameList[category].map((imageData) => {
+      return {
+        uri: getPhotoUri(getThumbSizeKey(category, imageData["name"])),
+        aspect_ratio: imageData.aspect_ratio,
+      };
+    }),
+  );
 
   console.log("Found photo name thumbnail list: ", res);
 
