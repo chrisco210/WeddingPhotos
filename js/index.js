@@ -91,7 +91,7 @@ function initLightbox() {
 // Photo Providers
 
 const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
-const MANIFEST_URI = "http://localhost:8080/";
+const MANIFEST_URI = BASE_URI;
 
 // const MANIFEST_KEY = "content/manifest.json";
 const MANIFEST_KEY = "distribution/manifest.json";
