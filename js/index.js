@@ -1,6 +1,6 @@
 window.addEventListener("DOMContentLoaded", async function () {
   console.log("DOMContentLoaded");
-  initGalleryImages();
+  await initGalleryImages();
   initGalleryLazyLoad();
 });
 
@@ -14,8 +14,10 @@ window.addEventListener("DOMContentLoaded", async function () {
 const GALLERY_DIV_ID = "photo-gallery-container";
 
 async function initGalleryImages() {
+  console.log("Initializing image gallery");
   const images = await getThumbnailUriList(0, undefined);
 
+  console.log("Retrieved image list");
   images.forEach((uri) => {
     const img = document.createElement("img");
     img.dataset.src = uri;
@@ -69,10 +71,8 @@ function initLightbox() {
     galleryImg.addEventListener("click", () => {
       console.log("Clicked on image " + galleryImg.src);
       const originalImgSource = galleryImg.src || galleryImg.dataset.src;
-      const imageName = originalImgSource.substring(
-        originalImgSource.lastIndexOf("/") + 1,
-      );
-      img.src = getPhotoUri(getFullSizeKey(imageName));
+      const fullImageSrc = originalImgSource.replace("thumb", "full");
+      img.src = fullImageSrc;
       overlay.classList.add("active");
     });
   });
@@ -91,8 +91,10 @@ function initLightbox() {
 // Photo Providers
 
 const BASE_URI = "https://d3fcs42rz5exiw.cloudfront.net/";
+const MANIFEST_URI = "http://localhost:8080/";
 
-const MANIFEST_KEY = "content/manifest.json?foo";
+// const MANIFEST_KEY = "content/manifest.json";
+const MANIFEST_KEY = "distribution/manifest.json";
 
 async function getThumbnailUriList(start, end) {
   const photoNameList = await getPhotoNameList(start, end);
@@ -105,13 +107,13 @@ async function getThumbnailUriList(start, end) {
     )
     .map(getPhotoUri);
 
-  console.log(res);
+  console.log("Found photo name thumbnail list: ", res);
 
   return res;
 }
 
 async function getPhotoNameList(start, end) {
-  const manifestResponse = await fetch(BASE_URI + MANIFEST_KEY);
+  const manifestResponse = await fetch(MANIFEST_URI + MANIFEST_KEY);
 
   if (!manifestResponse.ok) {
     throw new Error("Failed to retrieve photo manifest");

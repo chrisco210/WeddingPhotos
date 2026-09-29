@@ -1,4 +1,17 @@
-resource "aws_s3_bucket" "photo_source" {}
+resource "aws_s3_bucket" "photo_source" {
+}
+
+resource "aws_s3_bucket_cors_configuration" "photo_source" {
+  bucket = aws_s3_bucket.photo_source.id
+
+  cors_rule {
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["https://rachlinyan.com", "http://localhost"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
 
 resource "aws_s3_object" "manifest" {
   bucket = aws_s3_bucket.photo_source.id
@@ -57,6 +70,14 @@ data "aws_cloudfront_response_headers_policy" "simple_cors" {
   name = "Managed-SimpleCORS"
 }
 
+data "aws_cloudfront_origin_request_policy" "cors_s3" {
+  name = "Managed-CORS-S3Origin"
+}
+
+data "aws_cloudfront_cache_policy" "caching_optimized" {
+  name = "Managed-CachingOptimized"
+}
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name              = aws_s3_bucket.photo_source.bucket_regional_domain_name
@@ -72,19 +93,10 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.s3_origin_id
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
     viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
     response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_optimized.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors_s3.id
   }
 
   # All content being served by the cloudfront distribution is immutable
@@ -94,21 +106,11 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
     target_origin_id = local.s3_origin_id
 
-    forwarded_values {
-      query_string = false
-      headers      = []
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl                = 0
-    default_ttl            = 86400
-    max_ttl                = 31536000
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
     response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_optimized.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors_s3.id
   }
 
   price_class = "PriceClass_100"
