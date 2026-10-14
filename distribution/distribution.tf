@@ -78,6 +78,25 @@ data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
 }
 
+resource "aws_cloudfront_response_headers_policy" "gallery_cors" {
+  name = "gallery-cors"
+
+  cors_config {
+    access_control_allow_credentials = false
+    access_control_allow_headers { items = ["*"] }
+    access_control_allow_methods { items = ["GET", "HEAD", "OPTIONS"] }
+    access_control_allow_origins {
+      items = [
+        "https://rachlinyan.com",
+        "https://www.rachlinyan.com",
+      ]
+    }
+    access_control_expose_headers { items = ["ETag"] }
+    access_control_max_age_sec = 3000
+    origin_override            = true # ignore whatever S3 sends
+  }
+}
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name              = aws_s3_bucket.photo_source.bucket_regional_domain_name
@@ -94,8 +113,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     target_origin_id = local.s3_origin_id
 
     viewer_protocol_policy = "allow-all"
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
-    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_optimized.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.gallery_cors.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors_s3.id
   }
 
@@ -108,8 +127,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
-    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_optimized.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.gallery_cors.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors_s3.id
   }
 
